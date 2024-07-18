@@ -1,31 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, TextInput, View, TouchableOpacity, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { supabase } from '@/supabase'
-import { Link } from 'expo-router';
+import { supabase } from '@/supabase';
 
-export default function LoginForm() {
+export default function SignupForm() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [isEmailSent, setIsEmailSent] = useState(false);
 
-    const handleLogin = async () => {
+    const handleSignup = async () => {
         try {
-            const { data, error } = await supabase.auth.signInWithPassword({
-                email: email,
-                password: password
-            })
+            const { data, error } = await supabase.auth.signUp({
+                email,
+                password,
+            });
             if (!error) {
-                console.log('All is well')
-                setIsLoggedIn(true)
+                // console.log(data)
+                setIsEmailSent(true);
             } else {
-                console.log('Error : ', error)
+                Alert.alert('Signup Error', error.message);
             }
         } catch (err) {
-            console.log(err)
+            Alert.alert('Signup Error... Please wait or try again');
         }
-
     };
+
+    useEffect(() => {
+        const interval = setInterval(async () => {
+            if (isEmailSent) {
+                const { data, error } = await supabase.auth.getUser();
+                if (data.user && data.user.email_confirmed_at) {
+                    setIsLoggedIn(true);
+                    clearInterval(interval);
+                }
+            }
+        }, 3000);
+
+        return () => clearInterval(interval);
+    }, [isEmailSent]);
 
     if (isLoggedIn) {
         return (
@@ -46,9 +59,18 @@ export default function LoginForm() {
         );
     }
 
+    if (isEmailSent) {
+        return (
+            <View style={styles.container}>
+                <Text style={styles.title}>Check your email</Text>
+                <Text style={styles.infoText}>We have sent you a verification link. Please check your email to verify your account.</Text>
+            </View>
+        );
+    }
+
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Login to continue {':)'}</Text>
+            <Text style={styles.title}>Create an account :)</Text>
             <TextInput
                 style={styles.input}
                 placeholder="Email"
@@ -66,17 +88,16 @@ export default function LoginForm() {
                 secureTextEntry
                 placeholderTextColor="#666"
             />
-            <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+            <TouchableOpacity style={styles.signupButton} onPress={handleSignup}>
                 <LinearGradient
                     colors={['#ff6a00', '#ee0979']}
                     start={[0, 0]}
                     end={[1, 1]}
                     style={styles.gradient}
                 >
-                    <Text style={styles.buttonText}>Login</Text>
+                    <Text style={styles.buttonText}>Sign Up</Text>
                 </LinearGradient>
             </TouchableOpacity>
-            <Text style={{color: 'white', fontSize: 19, fontWeight: 'condensedBold', textAlign: 'left'}} >Don't Have an account? <Link href={'/signup'} > Signup </Link> </Text>
         </View>
     );
 }
@@ -95,6 +116,12 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginBottom: 20,
     },
+    infoText: {
+        color: 'white',
+        fontSize: 18,
+        textAlign: 'center',
+        marginHorizontal: 20,
+    },
     input: {
         width: '100%',
         height: 50,
@@ -105,7 +132,7 @@ const styles = StyleSheet.create({
         color: 'white',
         fontSize: 16,
     },
-    loginButton: {
+    signupButton: {
         width: '100%',
         height: 50,
         borderRadius: 10,
