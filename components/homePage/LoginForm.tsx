@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, TextInput, View, TouchableOpacity, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { supabase } from '@/supabase'
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 
 export default function LoginForm() {
+    const router = useRouter()
+
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -18,6 +20,8 @@ export default function LoginForm() {
             if (!error) {
                 console.log('All is well')
                 setIsLoggedIn(true)
+                router.replace('/additional-information')
+
             } else {
                 console.log('Error : ', error)
             }
@@ -27,24 +31,24 @@ export default function LoginForm() {
 
     };
 
-    if (isLoggedIn) {
-        return (
-            <View style={styles.container}>
-                <Text style={styles.title}>Welcome!</Text>
-                <Text>You are now logged in.</Text>
-                <TouchableOpacity onPress={() => setIsLoggedIn(false)}>
-                    <LinearGradient
-                        colors={['#ff6a00', '#ee0979']}
-                        start={[0, 0]}
-                        end={[1, 1]}
-                        style={styles.gradient}
-                    >
-                        <Text style={styles.buttonText}>Logout</Text>
-                    </LinearGradient>
-                </TouchableOpacity>
-            </View>
-        );
-    }
+    // if (isLoggedIn) {
+    //     return (
+    //         <View style={styles.container}>
+    //             <Text style={styles.title}>Welcome!</Text>
+    //             <Text>You are now logged in.</Text>
+    //             <TouchableOpacity onPress={() => setIsLoggedIn(false)}>
+    //                 <LinearGradient
+    //                     colors={['#ff6a00', '#ee0979']}
+    //                     start={[0, 0]}
+    //                     end={[1, 1]}
+    //                     style={styles.gradient}
+    //                 >
+    //                     <Text style={styles.buttonText}>Logout</Text>
+    //                 </LinearGradient>
+    //             </TouchableOpacity>
+    //         </View>
+    //     );
+    // }
 
     return (
         <View style={styles.container}>
@@ -76,7 +80,22 @@ export default function LoginForm() {
                     <Text style={styles.buttonText}>Login</Text>
                 </LinearGradient>
             </TouchableOpacity>
-            <Text style={{color: 'white', fontSize: 19, fontWeight: 'condensedBold', textAlign: 'left'}} >Don't Have an account? <Link href={'/signup'} > Signup </Link> </Text>
+            <Text
+                style={{
+                    color: 'white',
+                    fontSize: 19,
+                    fontWeight: 'condensedBold',
+                    textAlign: 'left'
+
+                }} >
+                Don't Have an account?
+                <Link
+                    href={'/signup'}
+                    style={{
+                        textDecorationLine: 'underline'
+                    }} > Signup
+                </Link>
+            </Text>
         </View>
     );
 }
