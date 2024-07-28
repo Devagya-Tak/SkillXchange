@@ -1,68 +1,82 @@
-import { View, Text, Button, Image, StyleSheet } from 'react-native'
-import React, { useState } from 'react'
-import { supabase } from '@/supabase'
+import { View, Text, Alert, Button, Image } from 'react-native'
+import React, { useEffect, useState } from 'react'
 import * as ImagePicker from 'expo-image-picker'
-import { Stack } from 'expo-router'
+import * as FileSystem from 'expo-file-system'
+import { supabase } from '@/supabase'
+import { User, UserResponse } from '@supabase/supabase-js'
+import { decode } from 'base64-arraybuffer'
+
 
 const AdditionalInformation = () => {
-  interface Skill {
-    name?: string
+
+  const [image, setImage] = useState<ImagePicker.ImagePickerAsset | null>(null);
+  const [user, setUser] = useState<User | null>(null)
+
+  const getUser = async () => {
+
+    const { data: { user } } = await supabase.auth.getUser()
+
+    setUser(user)
   }
-  const [username, setUsername] = useState('')
-  const [pfpUrl, setPfpUrl] = useState('')
-  const [image, setImage] = useState<string | null>(null)
-  const [skills, setSkills] = useState<Skill[]>([])
+
+  useEffect(() => {
+
+    getUser();
+  }, [])
+
+
 
   const pickImage = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      aspect: [5, 5],
-      quality: 1,
-    });
-
-    console.log(result)
+      aspect: [4, 3],
+    })
 
     if (!result.canceled) {
-      setImage(result.assets[0].uri)
+      setImage(result.assets[0])
+    }
+
+  }
+
+  const uploadImage = async () => {
+    if (image) {
+      const base64 = await FileSystem.readAsStringAsync(image.uri, {
+        encoding: 'base64'
+      })
+      const filePath = `${user!.id}/${new Date().getTime()}.${image.type === 'image' ? 'png' : 'mp4'}`
+      const contentType = image.type === 'image' ? 'image/png' : 'video/mp4';
+      try {
+        const { data, error } = await supabase
+          .storage
+          .from('pfps')
+          .upload(filePath, decode(base64), {
+            contentType: contentType
+          })
+        if (!error) {
+          Alert.alert("All is well")
+        } else {
+          Alert.alert("All is not well", error.message)
+        }
+      } catch (err) {
+        console.error(err);
+
+      }
+
     }
   }
-
-  const handleProfile = async () => {
-    const { error } = await supabase
-      .from('profiles')
-      .insert({
-        username,
-        pfp_url: pfpUrl,
-        skills
-      })
-  }
   return (
-    // <View>
-    <View style={styles.container}>
-      <Stack.Screen options={{
-        title: 'hello',
-        
-      }} />
-      <Text>Hello world</Text>
-      <Button title="Pick an image from camera roll" onPress={pickImage} />
-      {image && <Image source={{ uri: image }} style={styles.image} />}
+    <View>
+      <Button title='Pick image' onPress={pickImage} />
+      {
+        image &&
+        <View>
+          <Image source={{uri: image.uri}} />
+          <Button onPress={uploadImage} title='Upload image' />
+        </View>
+      }
     </View>
-    // </View>
   )
 }
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'black'
-  },
-  image: {
-    width: 200,
-    height: 200,
-  },
-});
-
 
 export default AdditionalInformation
