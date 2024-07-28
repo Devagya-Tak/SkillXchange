@@ -5,6 +5,7 @@ import * as FileSystem from 'expo-file-system';
 import { supabase } from '@/supabase';
 import { User, UserResponse } from '@supabase/supabase-js';
 import { decode } from 'base64-arraybuffer';
+import { Stack } from 'expo-router';
 
 const AdditionalInformation = () => {
   const [image, setImage] = useState<ImagePicker.ImagePickerAsset | null>(null);
@@ -57,32 +58,56 @@ const AdditionalInformation = () => {
 
   return (
     <View style={styles.container}>
-      <Button title="Pick image" onPress={pickImage} />
+      <Stack.Screen
+        options={{
+          title: 'Additional Information',
+          headerStyle: styles.header,
+          headerTintColor: '#fff',
+          headerTitleStyle: styles.headerTitle,
+          headerTitleAlign: 'center',
+        }}
+      />
+      <Button title="Pick Image" onPress={pickImage} color="#1e90ff" />
       {image && (
         <View style={styles.imageContainer}>
           <Image source={{ uri: image.uri }} style={styles.image} />
-          <Button onPress={uploadImage} title="Upload image" />
+          <Button onPress={uploadImage} title="Upload Image" color="#32cd32" />
         </View>
       )}
     </View>
+
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#121212',
+    padding: 20,
+  },
+  header: {
+    backgroundColor: '#1c1c1e',
+  },
+  headerTitle: {
+    fontWeight: 'bold',
+    fontSize: 24,
   },
   imageContainer: {
     marginTop: 20,
     alignItems: 'center',
+    backgroundColor: '#1e1e1e',
+    padding: 10,
+    borderRadius: 10,
   },
   image: {
     width: 200,
     height: 200,
     resizeMode: 'cover',
+    borderRadius: 10,
+    marginBottom: 10,
   },
 });
+
 
 export default AdditionalInformation;
