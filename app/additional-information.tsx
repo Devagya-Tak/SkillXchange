@@ -1,4 +1,4 @@
-import { View, Text, Alert, Button, Image, StyleSheet } from 'react-native';
+import { View, Text, Alert, Button, Image, StyleSheet, TextInput } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
@@ -10,6 +10,8 @@ import { Stack } from 'expo-router';
 const AdditionalInformation = () => {
   const [image, setImage] = useState<ImagePicker.ImagePickerAsset | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const [skill, setSkill] = useState<string>('')
+  const [skills, setSkills] = useState<string[]>(["Cooking"])
 
   const getUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -74,6 +76,39 @@ const AdditionalInformation = () => {
           <Button onPress={uploadImage} title="Upload Image" color="#32cd32" />
         </View>
       )}
+      <TextInput
+        placeholder='Enter your skills and press Enter'
+        value={skill}
+        onChangeText={t => setSkill(t)}
+      />
+      <Button
+        title='Add'
+        onPress={() => {
+          skills.push(skill)
+        }}
+      />
+      <View
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+          flexWrap: 'wrap',
+        }}
+      >
+        {/* View of skills */}
+
+        {
+          skills && skills.map(skill => (
+            <View style={{
+              backgroundColor: '#414141',
+              borderRadius: 50,
+              padding: 10
+            }}
+            >
+              {skill}
+            </View>
+          ))
+        }
+      </View>
     </View>
 
   );
